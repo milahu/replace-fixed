@@ -1,0 +1,16 @@
+Here's a list of things left to do in no particular order:
+
+* I don't like the regexp syntax (can be very cryptic),
+  but it feels like the old_str original string should allow it
+  (and maybe with the -x option too).
+
+* ftw() isn't very portable outside of the UNIX environment - probably need
+  to reccode the recursion to avoid using it. replace might eventually then
+  compile OK with Cygwin...
+
+* Handle printf()-style escape sequences (particularly \r and \n) so that
+  you can replace carriage returns/line feeds easily in text files
+  (Windows naff text file format strikes again...).
+
+* A replace.spec RPM config file would be nice, plus Makefile rules to
+  build a binary RPM (initially Fedora Core 2, maybe others later).

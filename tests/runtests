@@ -1,0 +1,153 @@
+#! /bin/sh
+# runtests - Testing script for replace command
+# (C) Richard K. Lloyd 2004
+# Pass "1" to as a parameter to switch on verbose mode
+
+set +u
+passed=0
+failed=0
+skipped=0
+verbose=$1
+syntax="Zero-terminate" # String unique to -z line of replace -h
+
+srcdir=..
+replace=$srcdir/replace
+if [ ! -x $replace ]
+then
+   echo "Replace binary not detected in source tree - rebuilding..."
+   curpwd=`pwd`
+   cd $srcdir; gmake
+   cd $curpwd
+fi
+
+echo "Running test suite for replace"
+if [ "$verbose" != "1" ]
+then
+   echo
+fi
+
+for diff in test*.replace
+do
+   core=./`basename $diff .replace`
+   old=$core.old
+   new=$core.new
+   tmp=$core.failed
+
+   case "$core" in
+   *004) cp $replace $old ; bintest=1 ; chmod u+x $old ;;
+      *) bintest=0 ;;
+   esac
+
+   if [ -s $new -a -s $diff ]
+   then
+      donequals=0
+      quals="" ; params=""
+      while read line
+      do
+
+         if [ $donequals -eq 0 ]
+         then
+            quals="$line" ; donequals=1
+            if [ "$verbose" = "1" ]
+            then
+               if [ "$quals" = "" ]
+               then
+                  quals="-"
+               fi
+               quals="${quals}vv"
+            fi
+         else
+            oldstr="`echo \"$line\" | cut -d, -f1`"
+            newstr="`echo \"$line\" | cut -d, -f2`"
+            if [ "$params" = "" ]
+            then
+               params="'$oldstr' '$newstr'"
+            else
+               params="$params -a '$oldstr' '$newstr'"
+            fi
+         fi
+      done <$diff
+
+      if [ "$verbose" = "1" ]
+      then
+         echo
+         if [ $bintest -eq 1 ]
+         then
+            echo "Output of unchanged binary 'replace -h 2>&1 | grep $syntax' is:"
+            $old -h 2>&1 | grep $syntax 2>&1
+         else
+            echo "$core original file:"
+            cat $old
+         fi
+
+         echo
+         echo "$core replace command:"
+         echo "$replace $quals $params"
+      fi
+
+      /bin/sh -c "$replace $quals $params <$old >$tmp"
+
+      if [ $bintest -eq 1 ]
+      then
+         # 4th test actually runs a modified
+         # binary, gets its help output and
+         # saves the -z syntax line
+         chmod u+x $tmp
+         $tmp -h 2>&1 | grep "$syntax" >$tmp.new
+         mv -f $tmp.new $tmp
+         rm -f $old
+      fi
+
+      if [ "$verbose" = "1" ]
+      then
+         echo
+         if [ $bintest -eq 1 ]
+         then
+            echo "Output of modified binary 'replace -h 2>&1 | grep $syntax' is:"
+         else
+            echo "$core new file after replacements:"
+         fi
+         cat $tmp
+
+         echo
+         echo "$core pre-prepared comparison file:"
+         cat $new
+         echo
+      fi
+
+      cmp $tmp $new >/dev/null 2>&1
+      if [ $? -eq 0 ]
+      then
+         echo "$core test...PASSED"
+         let passed=$passed+1
+         rm -f $tmp
+      else
+         echo "$core test...FAILED (failed output in $tmp)"
+         let failed=$failed+1
+      fi
+   else
+      if [ "$verbose" = "1" ]
+      then
+         echo
+      fi
+      echo "$core...SKIPPED (missing files)"
+      let skipped=$skipped+1
+   fi
+   if [ "$verbose" = "1" ]
+   then
+      echo
+   fi
+done
+
+if [ "$verbose" != "1" ]
+then
+   echo
+fi
+echo "Summary - PASSED: $passed, FAILED: $failed, SKIPPED: $skipped"
+if [ $failed -eq 0 -a "$verbose" = "1" ]
+then
+   echo
+   echo "replace program is confirmed to be OK and"
+   echo "can now be installed (e.g. gmake install)"
+fi
+exit 0

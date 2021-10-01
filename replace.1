@@ -1,0 +1,265 @@
+.TH replace 1 ""
+.SH NAME
+
+replace \- Replace strings in text or binary files in a sane fashion
+
+.SH SYNOPSIS
+
+.B replace
+.RB [ -? ]
+.RB [ -A ]
+.RB [ -b ]
+.RB [ -c\ startcol ]
+.RB [ -d\ tmpdir ]
+.RB [ -e ]
+.RB [ -f ]
+.RB [ -h ]
+.RB [ -i ]
+.RB [ -L ]
+.RB [ -l\ linenum ]
+.RB [ -m\ maxreplines ]
+.RB [ -n ]
+.RB [ -P ]
+.RB [ -p ]
+.RB [ -r|-R ]
+.RB [ -s ]
+.RB [ -T ]
+.RB [ -t\ maxtimes ]
+.RB [ -u\ backupsuffix ]
+.RB [ -v ]
+.RB [ -w ]
+.RB [ -x\ suffix [-x...] ]
+.RB [ -z ]
+.RB old_str
+.RB new_str
+.RB [ -a\ old_str\ new_str ]
+.RI [ filename\ [filename...] ]
+.SH DESCRIPTION
+.I replace
+performs (by default) a case-insensitive search for the "word" old_str in each
+text line and replaces it with new_str, which is (by default) case-adjusted to
+match the case of the particular occurrence of old_str in the original line.
+A "word" is defined to be a string that is preceded AND followed by a
+non\-alphanumeric character (start and end of lines count as such a character)
+in the original text line. The original versions of any modified files are
+(by default) saved with a ".cln" extension.
+.PP
+If no filenames are specified, then
+standard input and output are used for the replacements unless -r or -R is
+additionally specified
+(which will cause the current directory to be recursed for files instead).
+If "filenames" are specified with -r or -R, then they can either be files
+or the names of directories that will be recursed for files.
+If possible, modified files retain their ownership, group and permissions.
+.SH OPTIONS
+The following options are recognised:
+.PP
+.RS
+.TP
+.B  \-?
+Display a syntax usage message.
+.TP
+.B  \-A
+By default, replace uses the first 256 bytes of each file specified to
+automatically determine if the file is text or binary. By specifying this
+option, this auto-detection is turned off and replace assumes that all
+supplied files are text files. It is recommended that you avoid this
+option unless absolutely necessary due to the high risk of corruption
+of binary files that may be accidentally specified. Because of its dangerous
+nature, -A is now a deprecated option and may change its behaviour or be
+removed in a future release.
+.TP
+.B  \-a old_str new_str
+Allows extra replacement strings to be specified in strict left-to-right order.
+The maximum number of replacement pairs is 255. This is equivalent to sed's
+multiple -e parameters of course, so please note that the whole line is
+modified by the first replacement pair before it is rescanned for subsequent
+pairs. If -b or -h has been specified or the auto-detect code indicates
+the file is a binary, the binary input data is read in 16K
+chunks and the binary replacement pairs are applied in turn to each chunk
+(chunk-straddling is catered for of course).
+.TP
+.B  \-b
+Turns off file type auto-detection and forces replace to assume that all
+supplied files are binary files (i.e. the inverse of the -A option).
+The replacement string (new_str) must be less than or equal in
+length to the original string (old_str) and will not be zero-terminated
+unless -z is also supplied or padded with spaces unless -P or -p is used.
+Note that all binary replacements do not check if old_str is a "word"
+i.e. the -s option is enabled.
+Neither old_str nor new_str can be zero length (i.e. "") when -b is used.
+.PP
+Note that -b turns on initial checks about the suitability of the old and
+new strings for use in binary replacements (namely that old_str must not be
+zero length and new_str must be less than or equal to the length of old_str).
+Without the -b (or -h) option, such unsuitable strings are allowed, but will
+be silently ignored if the auto-detect code finds a binary file and attempts
+string replacements on it.
+.TP
+.B  \-c startcol
+Starts the string replacement from column 'linenum' onwards rather than the
+first column onwards. Ignored if -b or -h is also specified or if the
+auto-detect code indicates the file is a binary.
+.TP
+.B  \-d tempdir
+Specifies the temporary directory used for storing modified files. If the
+parameter is not supplied, then the environmental variable TMPDIR is read
+and used instead. If TMPDIR is also not set, then /tmp will be used.
+.TP
+.B  \-e
+Make the search case-sensitive. new_str exactly replaces old_str with no
+case\-adjustment to new_str.
+.TP
+.B  \-f
+Forces the update of files without any backup (which typically has a .cln suffix).
+.TP
+.B  \-h
+The original and replacement strings are normally ASCII strings, but -h
+switches their format to be hex strings of binary data. It also activates
+case-sensitive binary replacement mode (i.e. it switches on the -b and -e
+options). If you wanted, for example, to replace all occurrences of the byte 0
+with the byte 255 instead, you'd specify "-h 0 ff".
+.TP
+.B  \-i
+When specified once, the user will be interactively prompted whether they
+want the next file to have all of the appropriate strings replaced.
+When specified twice ("-i -i"), the prompting switches to asking about every
+single string replacement in each file (the appropriate unmodified line is
+displayed to aid the user). As a safety precaution, verbose mode is also
+switched on when -i is specified (to the level of the number of -i's
+stated). Note that the input is read from /dev/tty
+to avoid clashing with standard input and any prompts are, of course, sent
+to standard error.
+.TP
+.B  \-L
+Follows any soft-link specified on the command line to its linked-to
+destination before performing any replacements.
+If a soft-link eventually points to a directory and the -r or -R option
+has been specified, then that directory will be recursed (but any
+soft-links inside that directory will not be followed to avoid jumping
+out of the directory tree). If -L isn't supplied, soft-links specified
+on the command line will be skipped.
+.TP
+.B  \-l linenum
+Starts the string replacement from line 'linenum' onwards rather than the first
+line onwards. Ignored if -b or -h is also specified or if the file is
+auto-detected as a binary.
+.TP
+.B  \-m maxreplines
+Specifies the maximum number of lines that should have their strings replaced
+in a file. The default value is infinity. Ignored if -b or -h is also
+specified or if the file is auto-detected as a binary.
+.TP
+.B  \-n
+Displays what strings would be replaced without actually replacing them.
+It also, by necessity, switches on summary verbose mode (specify -nn to
+switch on all replacements verbose mode).
+.TP
+.B  \-P
+Pre-pads new_str with leading spaces if it is shorter than old_str.
+.TP
+.B  \-p
+Pads new_str with trailing spaces if it is shorter than old_str.
+.TP
+.B  \-r or \-R
+Recurses the filesystem from the current directory downwards (if no
+"filenames" are specified), replacing strings in every file found.
+Soft-links within the directory tree are ignored to avoid the recursion
+jumping out of that tree.
+The recursion can look for particular file suffixes only by the use of one or
+more -x parameters. If "filenames" are specified along with -r or -R,
+then they can either be files or the names of directories to recurse down for
+files.  Note that files ending in the backup suffix (typically .cln) will be
+skipped during the recursion.
+.TP
+.B  \-s
+Relaxes the condition that old_str has to match a "word" i.e. it replaces
+old_str even if it is a substring of a "word" or if it contains only
+non-alphanumeric characters.
+.TP
+.B  \-T
+Modified files retain the timestamps of the original unmodified files
+if this option is specified. By default, modified files have their timestamp
+set to the time the file was modified (i.e. now).
+.TP
+.B  \-t maxtimes
+States the maximum number of times a string can be replaced in any single line
+of a file. The default value is infinity. If -b or -h is also specified or
+the file is auto-detected as a binary, the
+maxtimes value applies to the whole binary input file.
+.TP
+.B  \-u backupsuffix
+Changes the backup suffix of the unmodified file from the default of \.cln
+to the specified backupsuffix value.
+.TP
+.B  \-v
+Increments (switches on) verbose mode. If specified once, only a brief per-file
+summary is reported to stderr of the files that had replacements performed on them.
+If specified twice (i.e. -vv), all individual replacements are additionally reported 
+to stderr and an overall summary is also displayed. If -v isn't specified at
+all (and -i or -n aren't used), then only warnings and errors are displayed
+to stderr (in other words, replace operates silently by default if there are
+no problems).
+.TP
+.B  \-w
+Recursively replaces strings in all Web-related source files
+in the current directory tree. Equivalent to
+"-r -x .html -x .htm -x .asp -x .js -x .css -x .xml -x .xhtml -x .shtml
+-x .jsp -x .php -x .php3 -x .php4 -x .pl".
+.TP
+.B  \-x suffix
+Specifies the suffix of the files to be case-insensitively matched when -r
+is used.  Multiple -x parameters can be utilised with the appropriate "or"
+meaning as you'd expect. The maximum number of -x parameters is 255.
+.TP
+.B  \-z
+Zero-terminate any binary replacement string (new_str) specified, which is
+useful if you are replacing a zero-terminated string (e.g. a pathname)
+with a smaller string in an executable. If this option is used, -b must
+also be supplied (note that using -h or -p will cause -z to be ignored)
+and also new_str must be shorter than old_str in order to cater for the zero
+terminator.
+.SH RETURN VALUE
+If replace has no non-fatal errors, it will return 0, otherwise it returns
+1. Fatal errors can include bad command line options or parameters,
+failure to allocate memory for replacement buffers, failure to read from
+the terminal when expecting user input and exiting replace via the
+"q" option when being prompted for input during "replace -i".
+.SH EXAMPLES
+To make an executable use /usr/lib/libc.1 instead of /usr/lib/libc.2 (note that
+this is "risky" and may lead to run-time problems for the executable, but it's
+one way to try to run an HP-UX 11.00 binary on HP-UX 10.20 !):
+.PP
+replace -bv /usr/lib/libc.2 /usr/lib/libc.1 filename
+.PP
+To make a file one long line (i.e. replace all line feeds with spaces):
+.PP
+replace -h a 20 filename
+.PP
+To recursively add the attribute bgcolor="#ffffff" to all <body> tags
+(regardless of case) in all Web-related source documents in the current
+directory tree downwards (but retaining the original case of the <body> tag):
+.PP
+replace -fswv "<body" "<body bgcolor=\\"#ffffff\\""
+.SH TIPS
+If the old or new string or the filenames you are specifying contain
+a space or any special shell character (e.g. brackets, pipe, backquote
+and so on), use single or double quotes to surround the whole string.
+If you want to remove a string from a file, specify "" as the new string
+to replace the old one.  If the old or new string begins with a minus
+("-"), you will have to stop command line argument parsing with --
+(e.g. replace -sev -- -old new...).
+.SH WARNINGS
+Replacing strings in binary executables, object files or libraries can lead to
+permanent corruption of said files if you perform the replacements
+in a haphazard manner. You are strongly advised to keep a backup copy of any
+such binary files you intend to replace strings in.
+.PP
+Do not use the -A option (which is now officially deprecated)
+unless you are completely convinced that all files
+specified are text files. You risk severe corruption of any binaries specified
+otherwise.
+.SH SEE ALSO BUT I WOULDN'T BOTHER
+sed(1)
+.SH AUTHOR
+Richard K. Lloyd	<replace@richardlloyd.org.uk>

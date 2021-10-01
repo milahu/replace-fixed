@@ -1,0 +1,69 @@
+Here is a feature comparison list between the four major UNIX string
+replacement programs that have source code available for them:
+
+MySQL:    http://dev.mysql.com/doc/mysql/en/replace_utility.html
+sed:      ftp://ftp.gnu.org/pub/gnu/sed/
+rpl:      http://www.laffeycomputer.com/rpl.html
+replace:  http://replace.richardlloyd.org.uk/
+
+Feature                                   MySQL   sed    rpl   replace
+-----------------------------------------------------------------------
+Freely modifiable/re-distributable         Yes    Yes    No      Yes
+Verbose mode                               Yes    No     Yes     Yes
+Interactive prompting                      No     No     Yes     Yes
+Fake mode (show but don't do it)           No     No     Yes     Yes
+Match new string case against old text     No     No     No      Yes
+Case-insensitive old string matching       No     No     Yes     Yes
+Word matching                              No     No     Yes     Yes
+Multiple replacement pairs                 Yes    Yes    No      Yes
+Unlimited string lengths                   Yes    Yes    No      Yes
+Can replace blank lines with new string    No     Yes    No      Yes
+Replace using stdin/stdout                 Yes    Yes    No      Yes
+Auto-detect binary files                   No     No     No      Yes
+Binary/hex string replacement              No     No     No      Yes
+Original file backup                       No     Yes    No      Yes
+Clean up temp files on CTRL-C              No     No     No      Yes
+String padding                             No     No     No      Yes
+Retain timestamp of original               No     No     Yes     Yes
+Retain owner/group/perms of original       No     No     Yes     Yes
+Directory recursion                        No     No     Yes     Yes
+Suffix match during recursion              No     No     Yes     Yes
+-----------------------------------------------------------------------
+Final score                               5/20   6/20    9/20   20/20
+
+Note that replacing strings in files with an optional backup (-i flag) is
+a new and most welcome feature in GNU sed 4.X or later, but sed's syntax
+sadly remains extremely user-hostile even in the latest GNU sed. MySQL's
+/usr/bin/replace (yes, it name-clashes with mine and I've told them that)
+is now the worst of the well-known replacement programs because it has very
+little to offer that can't be scripted with sed.
+
+rpl is a good alternative to sed for command-line use, though there are
+some drawbacks to it. The fact you're not allow to modify it and re-distribute
+the modified version is slightly disappointing (MySQL, sed and replace allow
+this, so why not rpl?) and the failure to allow the original file to be backed
+up before replacing strings in them is risking users' files unnecessarily
+(though this is promised as a feature in a future release). However, the two
+major omissions I can see from rpl (and both are supported in sed and replace)
+are the lack of multiple string replacement pairs and, even worse, the failure
+to support stdin/stdout for replacements, which severely limits its use in
+shell scripting.
+
+replace has some major advantages over both sed and rpl, particularly the
+auto-detection of binaries and the subsequent correct handling of replacements
+within binary files. This is a noticeable flaw in rpl because it has the
+recursive capability to destroy your binary files if you specify -r and supply
+an old string with a different length to the new string. Somewhat surprisingly,
+this destructive timebomb isn't mentioned anywhere in the rpl documentation
+or source code !
+
+The other big advantage of replace is its ability to retain the case of the
+original text being replaced (not the old string - the actual file contents)
+when replacing it with a new string. This is the reason I wrote replace in
+the first place - it's natural to keep the case (text can be in upper case
+and mixed case you know !) and a replace program that doesn't allow this is
+somewhat lacking, IMHO.
+
+The feature list table above was correct as of Thursday 7th October 2004.
+If you wish to make corrections to it, please e-mail
+replace@richardlloyd.org.uk and I'll appropriately adjust it.

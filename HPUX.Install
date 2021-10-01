@@ -1,0 +1,59 @@
+Package name:     replace
+Version number:   2.24
+Original author:  Richard K. Lloyd <replace@richardlloyd.org.uk>
+Original URL:     https://replace.richardlloyd.org.uk/
+HP-UX URL:        http://hpux.connect.org.uk/hppd/cgi-bin/search?package=&term=/replace-
+License:          Other/Unknown Open Source Licence
+Languages:        C 
+Build-time deps:  make
+Install tree:     /usr/local
+Report bugs to:   hpux@connect.org.uk
+Tested on:        HP rp3440 running HP-UX 11.31 and
+                  HP rx2660 running HP-UX 11.31
+Compilers used:   PA-RISC - B.11.11.24 (HP C)
+                  Itanium - A.06.28 (HP C)
+LDOPTS setting:   export LDOPTS="+s -L/usr/local/lib/hpux64 -L/usr/local/lib -L/usr/lib/hpux64 -L/usr/lib"
+Purpose:
+Replace ASCII or hex strings in text or binary files. Although HP-UX comes with
+sed, it has serious shortcomings as a command-line tool for novice users. This
+replace package provides a much easier way of replacing one or more strings
+with another in one or more text or binary files or from standard input. This
+release includes a memory allocation fix.
+Date archived:    Fri 15 Sep 2017
+
+-------------------------------------------------------------------------------
+
+To compile:
+
+[Select your favourite compiler flags and edit the TREE definition in the
+Makefile]
+gmake
+
+To test (terse version):
+
+gmake test
+[should pass all the tests]
+
+To test (verbose version):
+
+gmake verbosetest
+[should pass all the tests, with a lot more output]
+
+To install:
+
+gmake install
+
+Notes:
+
+* replace compiles and tests OK on HP-UX 11.31 and CentOS 7.
+  You'll never go back to sed again :-)
+
+* This software is freely modifiable and re-distributable, providing the
+  original unmodified text of the README is supplied with any re-distribution.
+  I'd be delighted to receive any feedback about bug fixes, compilation on
+  other platforms or enhancement requests. Send them to the e-mail address
+  replace@richardlloyd.org.uk and help stamp out sed now - you know it makes
+  sense !
+
+* To see if there's a new replace release available, please go here:
+  http://hpux.connect.org.uk/hppd/cgi-bin/search?package=&term=replace-

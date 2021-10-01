@@ -1,0 +1,278 @@
+This is a list of all the changes to replace since 1.00 was released:
+
+replace 2.24 (October 2004)
+============
+
+* Corrected a comparison of two size_t's that were underflowing and causing
+  a crash due to unallocated memory being accessed during string replacements
+  in text files.
+* One of the tests in the new test suite assumed that the user's PATH contained
+  ".", which often isn't the case (particularly for root). This has been fixed.
+* The "-A" option is deprecated in this release. It will either change its
+  functionality (unlikely) or be removed (more likely) in a future release
+  and hence should not be used any more. The reason for this is that it's
+  too "dangerous" (can potentially damage binary files) and the current code
+  isn't easily changed to make it less risky.
+
+replace 2.23 (September 2004)
+============
+
+* Added a new -d parameter to specify which (temporary) directory
+  modified files are written to (falls back to $TMPDIR or /tmp if -d
+  isn't supplied).
+* If a text file has only one line and that line has no linefeed (\n)
+  terminator, then that single line is now correctly read in and parsed
+  (it used to be incorrectly ignored in previous releases).
+* If a text file has a string replaced in a line which has no linefeed
+  terminator (by definition, this must be the last line in the file of course),
+  then a linefeed is no longer added to the end of that replaced line.
+* Avoid crash if -A is supplied and a binary file containing null bytes (ASCII
+  code 0) is specified. This will *still* corrupt the output file, so a
+  second warning about the -A option (i.e. don't use it unless you're
+  certain all files are text files) was added to the man page as well.
+* If fdopen() fails during the creation of a temporary file, that file
+  is now correctly closed and deleted.
+* Keep a global track of the name of the current temporary file (or ""
+  to mean no temporary file active).
+* The tidy_up routine (run on program exit) will now remove the current
+  temporary file if one is active.
+* Trap signals (e.g. SIGINT) and run the tidy_up routine. This finally means
+  that, unlike "rival" string replacement programs, CTRL-C will no longer
+  leave a temporary file behind.
+* A new test suite has been written - "gmake test" now runs a shell script
+  that puts the built replace binary through its paces. A more verbose
+  version can be run with "gmake verbosetest".
+* Ran the code through "splint" (Linux lint) and fixed the warnings.
+* Updated FEATURES file to allow for GNU sed 4.X (a couple of marks extra
+  for that compared to 3.X) and also added MySQL's replace (yes, there's a
+  binary name-clash there with this program and I've told MySQL about that...).
+
+replace 2.22 (May 2004)
+============
+
+* Support for signed long long added (including use of %lld for output of
+  such 8-byte integers) - falls back to signed long if signed long long
+  isn't available.
+* Double-quoted source and destination files if mv binary used to rename
+  files in the rename_files() routine. This should allow files with spaces
+  in their name to be correctly renamed.
+* Compiled with flags to support 64-bit file offsets/large files.
+* Documented -P option in "replace -?" output.
+* Fixed old and new string comparison when -h is used - memcmp() instead
+  of strcmp() is needed of course because the hex strings can contain
+  binary 0 in the middle of them, which thwarts strcmp().
+* Minor changes to fix +w1 warnings with HP-UX 11.23's paranoid HP ANSI C
+  compiler (most +w1 warnings now come from HP-UX's own system header
+  files...<sigh>).
+* Added note about shell special characters such as brackets in the man
+  page (i.e. you need to single or double quote params if they include
+  any special char).
+* Confirmed that replace builds with a K&R-only C compiler ("cc_bundled"
+  that comes as standard with HP-UX 11.00) as well as an ANSI C compiler.
+
+replace 2.21 (March 2004)
+============
+
+* Fixed incorrect assumption that a char was an unsigned byte (it's
+  actually a signed byte) - this was causing binary replacements to crash
+  on occasions.
+* Switched to using mkstemp() instead of tmpnam().
+* Added .xhtml and .shtml extensions to those picked up by the -w flag.
+* Makefile now requires GNU make and will auto-detect Linux or HP-UX flags
+  as necessary.
+
+replace 2.20 (June 2001)
+============
+
+* New auto.c source file added the auto-detection of binary files (turned
+  on by default). At long last, a mixture of binary and text files can be
+  supplied on the command line and replace will use the first 256 bytes
+  of each file to determine if the file is text or binary automatically.
+  Note that other string replacement programs such as sed or rpl actually
+  corrupt binaries when they are run with different-sized old and new
+  strings (by shifting all the data, making the binary fail to run),
+  whereas the replace command avoids this.
+* New FEATURES file to provide a feature-by-feature comparison chart between
+  sed, rpl and replace. Guess who wins ? :-)
+* Added new "-A" option to force replace to think all supplied files are
+  text files (i.e. it turns off the new auto-detection code and reverts to
+  the default text file replacement mode of previous releases). It's probably
+  not a good idea to use this option, because there is a risk of corrupting
+  any binaries that are specified.
+* Added new "-P" option to pre-pad any new replacement string with leading
+  spaces (as opposed to -p, which pads with trailing spaces).
+* Verbose mode (-v) now has two levels - a single -v only displays a summary
+  about files that had replacements performed on them. Two -v's (e.g. -vv)
+  reverts to the older behaviour of showing all the replacements that take
+  place and providing an overall summary. This means that replacing
+  a large number of files (especially with -r) and using a single -v won't
+  swamp the screen with output. -i and -n now also "double up" and increment
+  the verbosity level to match the number of times they are specified.
+* If the directory containing a file to be modified was read-only, then
+  the update of the file used to fail silently. This has been fixed - a
+  warning message is sent to stderr now.
+* Missing break statement in the '-T' option parsing caused problems on
+  some systems - it's now been fixed.
+* The old string to be replaced can now be null (i.e. ""), but only when
+  doing replacements in text files of course. It replaces blank lines with
+  the new string specified.
+* Zero-length files are now detected and skipped with an appropriate warning
+  (you can't do replacements on totally empty files, because there's not
+  even a blank line to replace !).
+* Now use a function instead of a macro to copy characters into the new line
+  buffer when doing replacements on text files. This reduces the overall
+  code size by not replicating the same macro code 8 times.
+
+replace 2.10 (June 2001)
+============
+
+* Added new "-T" option to retain the original timestamp of modified files
+  (I don't think this should be the default, because the changed timestamp
+  gives you a clue if the file has been modified or not, especially if you
+  use -f and don't have a backup to compare it with).
+* Added new "-L" option to follow soft-links supplied on the command-line
+  before doing replacements (potential soft-link loops and relative soft-links
+  containing ".." are both coped with). The default is now to ignore such
+  soft-links and issue a warning (which is actually a bug fix compared to
+  previous behaviour when replace came across a soft-link).
+* Any filename parameter that isn't a directory (-r or -w needed),
+  file or soft-link (-L needed) is now ignored with an appropriate warning.
+  This prevents "sillies" like FIFOs and device files being supplied.
+* You can now optionally specify directories to recurse down when -r
+  is supplied (if none are stated, the current directory is recursed).
+  You can still mix files and directories on the command line with -r of
+  course (like the way you can with "rm").
+* Added prototypes if an ANSI C compiler is used, which finally removed all
+  HP ANSI C compiler warnings with the +w1 flag (so that's now been added
+  to the flags for that compiler). Prototypes that cover calls from multiple
+  source files have been moved into replace.h, whilst if only one source
+  file calls a prototyped routine, it's put in the source file.
+* Added .asp, .js, .css, .xml, .jsp, .php, .php3, .php4 and .pl to the
+  list of extensions detected by the "-w" option.
+* The -x suffix checking is now case-insensitive.
+* Display "6" through to "9" as words ("six" through to "nine") in verbose
+  messages in addition to the 0-5 that the previous version displayed as words.
+* Verbose mode now displays "...binary file..." or "...text file..." messages
+  depending on whether -b was specified or not.
+* Verbose mode now displays "line y, column x" output when replacing, which is
+  a little better than "pos: x, line: y".
+* Added use of ferror() to check for read/write/close errors when accessing
+  files. Any file with such an error will not be updated and will be skipped.
+  If stdin/stdout operations have an error, the program is aborted.
+* Fixed bug that wasn't closing original text file when "replace -n" was used.
+* All warning messages now have a "WARNING:" string at the start (most already
+  did, but some didn't).
+* All malloc() routines are now checked for failure and the program will abort
+  if it can't allocate memory at any time.
+* Used lint to tidy up ultra-pedantic cross-source warnings.
+
+replace 2.01 (February 2000)
+============
+
+* No memory was malloc()'ed when the first line of a file was blank (should
+  have malloc()'ed 1 byte), so when a zero-terminator was stored for the
+  replaced string, the code would crash intermittently. This has been fixed.
+* New Web site for replace: http://replace.richardlloyd.org.uk/
+
+replace 2.00 (November 1999)
+============
+
+* New binary.c source file to cope with binary-related code.
+* New init.c source file containing initialisation routines.
+* New text.c source file containing text-related code.
+* Variables now global and moved into replace.h.
+* Added "-b" to signify that all input files are in binary format and should
+  have binary replacements rather the default line-based string replacements.
+* Added "-h" to specify the replacement binary strings in hex.
+* Added "-m" to indicate the maximum number of lines in a file that
+  should have replacements.
+* Added "-t" option to state the maximum number of times a string can
+  be replaced in any single line of a file.
+* Added "-z" option (to be used with -b) to zero-terminate strings that are
+  shorter when replacing such strings in binaries (by default it doesn't).
+* Memory for file buffers is now dynamically allocated, so there's no
+  more nasty string truncation of very long lines any more.
+* All functions now have at least one comment.
+* Added ident string so that "what replace" reports the version info.
+* Sizes of the original and replaced files are now output in verbose mode.
+* Fixed problem with GNU getopt() re-ordering the minus options (causing
+  -a not to be parsed properly). I added a "+" as the first char of the
+  getopt() options param and this cured the problem.
+* Man page, usage output and getopt() qualifiers all now sync with each
+  other (unlike the previous release).
+* Added some useful examples to the man page.
+* Syntax message now uses argv[0] (and auto-adjusting option indentation) to
+  display the binary name.
+* Now tested on HP-UX 10.20, HP-UX 11.00, Solaris 2.6 and Linux.
+* Announced to www.freshmeat.net for the first time (since no-one seems to
+  know of the existence of "replace" !).
+
+replace 1.10 (October 1999)
+============
+
+* Added a "-i" option to interactively prompt the end-user.
+* Added "-n" to just show what strings would be replaced without actually
+  replacing them.
+* Added a "-r" option to recurse the current directory.
+* The "-u backupsuffix" option now allows the user to choose their own
+  backup suffix (the default of .cln might seem strange to some people).
+* Added "-w" option to allow easy string replacement of an entire Web tree's
+  HTML documents.
+* Added a "-x suffix" option to combine with -r in only replacing strings
+  in files that end in the specified suffix.
+* Increased maximum string length before truncation from 1023 to 4095 chars.
+* Added a "make test" rule.
+* Added a "make gcc" rule for my own convenience rather than anyone else's :-)
+* Supplying no params at all now displays the Usage message.
+* Various other small improvements to the code (nothing user-visible).
+* Deleted text2html and text2html.1 - not worth including (there are much,
+  much better text to HTML converters out there - this was one was very
+  crude).
+* Deleted patchlevel.h and merged its content (yep, one line with the
+  version number in it) into replace.h. Never saw the point of patchlevel.h
+  myself - I only did it because a few other packages pointlessly used it.
+
+replace 1.03 (June 1998)
+============
+
+* Updated files now retain their original permissions, ownership and group
+  where possible. The datestamp is modified of course though because the file
+  contents have been changed.
+
+replace 1.02 (April 1996)
+============
+
+* Added "-c startcol" to start string replacements from a particular column.
+* Check for line length after replacements and truncate it if it exceeds
+  1023 characters.
+* Bug fix to case-matching routine.
+* Bug fix to "-a" checking.
+* Picked up program name from argv[0] and used in error messages.
+* Added verbose-mode message to indicate start column and line for the
+  replacements.
+* Don't display syntax guff unless "replace -?" or a bad replace qualifier
+  used.
+* Added a text2html.1 man page.
+* Separated definitions and includes into replace.h.
+* Slight modification of Makefile to install into /opt/replace tree for
+  PD archive 10.X package [no changes to any other source files for the 10.X
+  source package of replace 1.02].
+
+replace 1.01 (1995 ?)
+============
+
+* Added "-a old_str new_str" to finally bury the ghost of sed once and for all.
+* Added "text2html" script to show off the new -a option :-)
+* Fixed a bug w.r.t. the temporary file not getting deleted.
+* Kept "make lint" happy.
+* Added "patchlevel.h" complete with version number.
+
+replace 1.00 (1994)
+============
+
+* Initial release - probably the first ever string-replacing program that could
+  keep the (possibly mixed) case of the original string when replacing it with
+  a new string. This is a very useful thing - after all, not everything is all
+  in lower or upper case...it can be mixed too. This was always a major
+  frustration for me when using sed (apart from the dreadful sed syntax of
+  course).

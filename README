@@ -1,0 +1,31 @@
+                               replace 2.24
+                           by Richard K. Lloyd
+                      <replace@richardlloyd.org.uk>
+                   http://replace.richardlloyd.org.uk/
+                   Dedicated to everyone who hates sed
+
+You know, I looked around the Net back in 1994 and I was really surprised
+that I couldn't find a sensible "replace" command (not true any more - the
+"rpl" command has come on the scene to rival this program, but I hope you'll
+use this one instead !).
+
+This was probably because most UNIX hackers say "we've got sed, what do we need
+a replace command for ?". Well, my reply is that the sed syntax is disgraceful
+and totally user-hostile. It's also quite likely to come up with
+"sed: command garbled" and fail to send ANYTHING to stdout, meaning you
+end up wrecking your file if you try to call sed via a small shell script
+interface.
+
+So I cooked up this "replace" command - it's been pretty straightforward to
+write, although if you check out the FEATURES file, you'll see it now has many
+additional features that sed doesn't.
+
+NOTE: I cannot be sure that "replace" is totally bug-free. I accept no
+      responsibility for the possible irreversible overwriting of files
+      (especially with "replace -f") - I would recommend you try it on
+      a copy of a few of your important files before you dare to use
+      "replace -f".
+
+Anyway, I'll leave you to read the man page and enjoy.
+
+Please see HPUX.Install for the full installation instructions.
